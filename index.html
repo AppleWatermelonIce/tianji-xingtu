@@ -210,42 +210,6 @@ td.cat-try{background:var(--tag)!important;color:var(--mo)!important;border-colo
   .table-wrap{box-shadow:none}
 }
 
-/* ---------- 背景音乐控件（配乐版新增） ---------- */
-.bgm{position:fixed;right:22px;bottom:22px;z-index:60;display:flex;align-items:center}
-.bgm audio{display:none}
-.bgm-btn{position:relative;width:56px;height:56px;padding:0;cursor:pointer;
-  border-radius:50%;border:1px solid rgba(197,164,109,.72);
-  background:radial-gradient(circle at 34% 28%,#2A5055,#183238 72%);
-  color:var(--gold);display:grid;place-items:center;
-  box-shadow:0 10px 24px -10px rgba(8,22,26,.85),inset 0 0 0 1px rgba(197,164,109,.12);
-  transition:transform .25s ease,box-shadow .25s ease,color .25s ease}
-.bgm-btn:hover{transform:translateY(-2px);color:var(--ivory);
-  box-shadow:0 14px 28px -10px rgba(8,22,26,.9),inset 0 0 0 1px rgba(197,164,109,.22)}
-.bgm-btn svg{width:22px;height:22px;display:block}
-.bgm-btn .i-pause{display:none}
-.bgm-btn.on .i-play{display:none}
-.bgm-btn.on .i-pause{display:block}
-.bgm-btn.on::after{content:"";position:absolute;inset:-5px;border-radius:50%;
-  border:1px solid rgba(197,164,109,.5);animation:bgmPulse 2.8s ease-out infinite}
-@keyframes bgmPulse{0%{transform:scale(.92);opacity:.8}70%{transform:scale(1.2);opacity:0}100%{opacity:0}}
-.bgm-tip{position:absolute;right:70px;bottom:14px;white-space:nowrap;
-  font-family:var(--serif);font-size:12.5px;letter-spacing:.12em;color:var(--gold);
-  background:rgba(24,50,56,.95);border:1px solid rgba(197,164,109,.42);border-radius:999px;
-  padding:6px 14px;opacity:0;transform:translateX(8px);pointer-events:none;
-  transition:opacity .35s ease,transform .35s ease}
-.bgm-tip.show{opacity:1;transform:translateX(0)}
-.bgm-vol{width:0;opacity:0;height:4px;margin:0;padding:0;accent-color:var(--gold);
-  cursor:pointer;transition:width .3s ease,opacity .3s ease,margin .3s ease}
-.bgm:hover .bgm-vol,.bgm:focus-within .bgm-vol{width:92px;opacity:1;margin-right:12px}
-@media (max-width:640px){
-  .bgm{right:14px;bottom:14px}
-  .bgm-btn{width:48px;height:48px}
-  .bgm-btn svg{width:19px;height:19px}
-  .bgm-vol{display:none}
-  .bgm-tip{right:60px;font-size:12px}
-}
-.bgm-credit{font-size:11.5px;line-height:1.75;opacity:.6;letter-spacing:.03em;margin:6px 0 0}
-@media print{.bgm{display:none!important}}
 </style>
 </head>
 <body>
@@ -880,59 +844,11 @@ td.cat-try{background:var(--tag)!important;color:var(--mo)!important;border-colo
 
   <footer class="foot">
     <p>天机十二门 · 国学术数学习手册　|　整理日期：2026-09-25</p>
-    <p class="bgm-credit">背景音乐：古筝曲《Lovely Chinese Guzheng Bowed》（Pufermufin 演奏，许可 CC0 / 公有领域），来源 Freesound（cdn.freesound.org），可直链播放；本地收藏版为八曲古琴混音（须与网页同目录）</p>
     <p><a href="#toc">回到目录</a></p>
   </footer>
 
 </main>
 
 
-<!-- ---------- 背景音乐（配乐版） ---------- -->
-<div class="bgm" id="bgm">
-  <audio id="bgmAudio" src="https://cdn.freesound.org/previews/396/396903_6977826-hq.mp3" loop preload="metadata"></audio>
-  <span class="bgm-tip" id="bgmTip">古筝清音 · 云水之间</span>
-  <input class="bgm-vol" id="bgmVol" type="range" min="0" max="100" step="1" value="55" aria-label="背景音乐音量">
-  <button class="bgm-btn" id="bgmBtn" type="button" aria-label="播放背景音乐" title="播放 / 暂停 背景音乐">
-    <svg class="i-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.2 5.4a1 1 0 0 1 1.53-.85l9.6 6.1a1 1 0 0 1 0 1.7l-9.6 6.1A1 1 0 0 1 8.2 17.6z"/></svg>
-    <svg class="i-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.2 4.9h3.1v14.2H7.2zM13.7 4.9h3.1v14.2h-3.1z"/></svg>
-  </button>
-</div>
-<script>
-(function(){
-  var box=document.getElementById('bgm');
-  if(!box)return;
-  var au=document.getElementById('bgmAudio'),btn=document.getElementById('bgmBtn'),
-      tip=document.getElementById('bgmTip'),vol=document.getElementById('bgmVol');
-  var POS='tianji_bgm_pos',LVL='tianji_bgm_vol';
-  function read(k,d){try{var v=localStorage.getItem(k);return v===null?d:v;}catch(e){return d;}}
-  function write(k,v){try{localStorage.setItem(k,v);}catch(e){}}
-  function mark(on){btn.classList.toggle('on',!!on);
-    btn.setAttribute('aria-label',on?'暂停背景音乐':'播放背景音乐');}
-  function toast(msg){tip.textContent=msg;tip.classList.add('show');
-    clearTimeout(toast.t);toast.t=setTimeout(function(){tip.classList.remove('show');},10000);}
-  function toggle(){
-    if(au.paused){var p=au.play();
-      if(p&&p.catch)p.catch(function(){toast('未找到音频文件 · 请把「'+au.getAttribute('src')+'」与网页放在同一文件夹');});
-    }else{au.pause();}
-  }
-  var lv=parseFloat(read(LVL,'0.55'));
-  if(isNaN(lv)||lv<0||lv>1)lv=0.55;
-  au.volume=lv; if(vol)vol.value=Math.round(lv*100);
-  btn.addEventListener('click',toggle);
-  if(vol)vol.addEventListener('input',function(){
-    au.volume=Math.min(1,Math.max(0,vol.value/100));write(LVL,String(au.volume));
-  });
-  au.addEventListener('play',function(){mark(true);write('tianji_bgm_on','1');});
-  au.addEventListener('pause',function(){mark(false);});
-  au.addEventListener('loadedmetadata',function(){
-    var t=parseFloat(read(POS,'0'));
-    if(t>3&&t<au.duration-3){try{au.currentTime=t;}catch(e){}}
-  });
-  setInterval(function(){if(!au.paused)write(POS,String(au.currentTime));},4000);
-  setTimeout(function(){if(au.paused)tip.classList.add('show');},1500);
-  setTimeout(function(){tip.classList.remove('show');},10000);
-  window.addEventListener('load',function(){var p=au.play();if(p&&p.catch)p.catch(function(){});});
-})();
-</script>
 </body>
 </html>
